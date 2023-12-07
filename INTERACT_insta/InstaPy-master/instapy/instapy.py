@@ -3241,6 +3241,7 @@ class InstaPy:
                     self.logfolder,
                     quick_follow,
                     self.my_person_list,
+                    self.skip_private
                 )
 
             except (TypeError, RuntimeWarning) as err:

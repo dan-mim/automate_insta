@@ -714,6 +714,7 @@ def get_users_through_dialog_with_graphql(
     edge_followed_by,
     quick_follow,
     my_person_list=[],
+    skip_private = False
 ):
     # my_person_list: list of followers of the main count. Don't try to follow someone you already follow
     if login == user_name:
@@ -846,10 +847,23 @@ def get_users_through_dialog_with_graphql(
     for follower in followers_page:
         # get follower name
         follower_name = follower["node"]["username"]
-        if follower_name not in my_person_list:
+        is_private = follower["node"]["is_private"]
+        following = follower["node"]["followed_by_viewer"]
+        requested = follower["node"]["requested_by_viewer"]
+        
+        # if collecting info of my own account
+        if login ==  user_name:
             followers_list.append(follower_name)
         else:
-            print(f'I already followed {follower_name} !!')
+            if skip_private is True:
+                if is_private is False:
+                    if follower_name not in my_person_list:
+                        if following is False and requested is False:
+                            followers_list.append(follower_name)
+            if skip_private is False:
+                if follower_name not in my_person_list:
+                    if following is False and requested is False:
+                        followers_list.append(follower_name)
 
     has_next_page = data["data"]["user"][str(edge_type)]["page_info"]["has_next_page"]
 
@@ -883,13 +897,32 @@ def get_users_through_dialog_with_graphql(
         except:
             logger.error("JSON (2) cannot be loaded, moving on...")
             return [], []
-
+        
+        
         # iterate over page size and add users to the list
         for follower in followers_page:
-            # get follower name
+            
+            
+            # get follower infos
             follower_name = follower["node"]["username"]
-            if follower_name not in my_person_list:
+            is_private = follower["node"]["is_private"]
+            following = follower["node"]["followed_by_viewer"]
+            requested = follower["node"]["requested_by_viewer"]
+            
+            # if collecting info of my own account
+            if login ==  user_name:
                 followers_list.append(follower_name)
+            
+            else:                
+                if skip_private is True:
+                    if is_private is False:
+                        if follower_name not in my_person_list:
+                            if following is False and requested is False:
+                                followers_list.append(follower_name)
+                if skip_private is False:
+                    if follower_name not in my_person_list:
+                        if following is False and requested is False:
+                            followers_list.append(follower_name)
 
         # check if there is next page
         has_next_page = data["data"]["user"][str(edge_type)]["page_info"][
@@ -1079,6 +1112,7 @@ def get_given_user_followers(
     logfolder,
     quick_follow=False,
     my_person_list=[],
+    skip_private=False
 ):
     """
     For the given username, follow their followers.
@@ -1156,6 +1190,7 @@ def get_given_user_followers(
         edge_followed_by,
         quick_follow,
         my_person_list,
+        skip_private
     )
 
     return person_list, simulated_list
