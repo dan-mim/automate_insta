@@ -468,24 +468,24 @@ class InstaPy:
         # logs only followers/following numbers when able to login,
         # to speed up the login process and avoid loading profile
         # page (meaning less server calls)
-        self.followed_by = log_follower_num(self.browser, self.username, self.logfolder)
-        self.following_num = log_following_num(
-            self.browser, self.username, self.logfolder
-        )
-        # try to save account progress
-        try:
-            save_account_progress(self.browser, self.username, self.logger, self.followed_by, self.following_num)
-        except Exception as e:
-            # Comment:
-            # Saw this error:
-            # "TypeError: window._sharedData.entry_data.ProfilePage is undefined"
-            # when IG deleted a pic or video due community guidelines, then the
-            # FF session shows a different page that interrupts the normal flow.
-            self.logger.warning(
-                "Unable to save account progress, skipping data update \n\t{}".format(
-                    str(e).encode("utf-8")
-                )
-            )
+        # self.followed_by = log_follower_num(self.browser, self.username, self.logfolder)
+        # self.following_num = log_following_num(
+        #     self.browser, self.username, self.logfolder)
+        
+        # # try to save account progress
+        # try:
+        #     save_account_progress(self.browser, self.username, self.logger, self.followed_by, self.following_num)
+        # except Exception as e:
+        #     # Comment:
+        #     # Saw this error:
+        #     # "TypeError: window._sharedData.entry_data.ProfilePage is undefined"
+        #     # when IG deleted a pic or video due community guidelines, then the
+        #     # FF session shows a different page that interrupts the normal flow.
+        #     self.logger.warning(
+        #         "Unable to save account progress, skipping data update \n\t{}".format(
+        #             str(e).encode("utf-8")
+        #         )
+        #     )
 
         # the persons I follow and the followers I have 
         date_list = [datetime.now().strftime('%d/%m/%Y')]
@@ -504,12 +504,14 @@ class InstaPy:
             self.logfolder,
         )
         
+        self.following_num = len(self.my_followings)
+        
         # if the document already exist
         if os.path.isfile('followings.csv'):
             df_followings_tot = pd.read_csv('followings.csv')
             # store the data of my followers and my followings
-            self.my_followings = [p for p in self.my_followings if p not in list(df_followings_tot.followings)]
-            df_followings = pd.DataFrame({'followings':self.my_followings, 'date':date_list*len(self.my_followings)})
+            my_followings1 = [p for p in self.my_followings if p not in list(df_followings_tot.followings)]
+            df_followings = pd.DataFrame({'followings':my_followings1, 'date':date_list*len(my_followings1)})
             df_followings_tot = pd.concat([df_followings_tot, df_followings], ignore_index=True)
             df_followings_tot = df_followings_tot.drop_duplicates()
         
@@ -534,10 +536,12 @@ class InstaPy:
             self.logfolder,
         )
         
+        self.followed_by = len(self.my_followers)
+        
         if os.path.isfile('followers.csv'):
             df_followers_tot = pd.read_csv('followers.csv')
-            self.my_followers = [p for p in self.my_followers if p not in list(df_followers_tot.followers)]
-            df_followers = pd.DataFrame({'followers':self.my_followers, 'date':date_list*len(self.my_followers)})
+            my_followers1 = [p for p in self.my_followers if p not in list(df_followers_tot.followers)]
+            df_followers = pd.DataFrame({'followers':my_followings1, 'date':date_list*len(my_followings1)})
             df_followers_tot = pd.concat([df_followers_tot, df_followers], ignore_index=True)
             df_followers_tot = df_followers_tot.drop_duplicates()
         else:
@@ -550,8 +554,8 @@ class InstaPy:
         followings = set( list(df_followings_tot.followings) )
         self.my_person_list = followers.union(followings)
         self.my_person_list = list(set( self.my_person_list ))
-        self.my_followers = followers 
-        self.my_followings = followings
+        # self.my_followers = followers 
+        # self.my_followings = followings
         
         
         
