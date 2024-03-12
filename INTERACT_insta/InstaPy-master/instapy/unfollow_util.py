@@ -987,11 +987,12 @@ def get_users_through_dialog_with_graphql(
     # get real amount
     followers_list = random.sample(followers_list, real_amount)
     
-    if len(followers_list) < 50:
-        for i, user in enumerate(followers_list):
-            logger.info(
-                "To be followed: [{}/{}/{}]".format(i + 1, len(followers_list), user)
-            )
+    if login !=  user_name:
+        if len(followers_list) < 50:
+            for i, user in enumerate(followers_list):
+                logger.info(
+                    "To be followed: [{}/{}/{}]".format(i + 1, len(followers_list), user)
+                )
 
     return followers_list, []
 

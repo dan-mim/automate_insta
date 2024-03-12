@@ -5,6 +5,7 @@ import os
 import pickle
 import random
 import socket
+import time
 
 # import exceptions
 from selenium.common.exceptions import (
@@ -289,86 +290,86 @@ def login_user(
         logger.info("- Cookie file not found, creating cookie...")
 
     if login_state and cookie_loaded:
-        # Cookie loaded and joined IG, dismiss following features if availables
-        dismiss_notification_offer(browser, logger)
-        dismiss_save_information(browser, logger)
-        accept_igcookie_dialogue(browser, logger)
+        # # Cookie loaded and joined IG, dismiss following features if availables
+        # dismiss_notification_offer(browser, logger)
+        # dismiss_save_information(browser, logger)
+        # accept_igcookie_dialogue(browser, logger)
         return True
+    
+    # return(True)
+    # # This fix comes from comment in #6060 If not necessary we can remove it
+    # accept_igcookie_dialogue(browser, logger)
 
-    # This fix comes from comment in #6060 If not necessary we can remove it
-    accept_igcookie_dialogue(browser, logger)
+    # # if user is still not logged in, then there is an issue with the cookie
+    # # so go create a new cookie.
+    # if cookie_loaded:
+    #     logger.warning(
+    #         "- Issue with cookie for user '{}'. Creating new cookie...".format(username)
+    #     )
 
-    # if user is still not logged in, then there is an issue with the cookie
-    # so go create a new cookie.
-    if cookie_loaded:
-        logger.warning(
-            "- Issue with cookie for user '{}'. Creating new cookie...".format(username)
-        )
+    #     # Error could be faced due to "<button class="sqdOP L3NKy y3zKF"
+    #     # type="button"> Cookie could not be loaded" or similar.
+    #     # Session displayed we are in, but then a failure for the first
+    #     # `login_elem` like the element is no longer attached to the DOM.
+    #     # Saw this issue when session hasn't been used for a while; which means
+    #     # "expiry" values in cookie are outdated.
+    #     try:
+    #         # Since having issues with the cookie a new one can be generated,
+    #         # if cookie cannot be created or deleted stop execution.
+    #         logger.info("- Deleting browser cookies...")
+    #         browser.delete_all_cookies()
+    #         browser.refresh()
+    #         # Delete file from Filesystem if any issue with the cookie
+    #         os.remove(cookie_file)
+    #         sleep(random.randint(3, 5))
 
-        # Error could be faced due to "<button class="sqdOP L3NKy y3zKF"
-        # type="button"> Cookie could not be loaded" or similar.
-        # Session displayed we are in, but then a failure for the first
-        # `login_elem` like the element is no longer attached to the DOM.
-        # Saw this issue when session hasn't been used for a while; which means
-        # "expiry" values in cookie are outdated.
-        try:
-            # Since having issues with the cookie a new one can be generated,
-            # if cookie cannot be created or deleted stop execution.
-            logger.info("- Deleting browser cookies...")
-            browser.delete_all_cookies()
-            browser.refresh()
-            # Delete file from Filesystem if any issue with the cookie
-            os.remove(cookie_file)
-            sleep(random.randint(3, 5))
-
-        except Exception as e:
-            # NF: start
-            if isinstance(e, WebDriverException):
-                logger.exception(
-                    "Error occurred while deleting cookies from web browser!\n\t{}".format(
-                        str(e).encode("utf-8")
-                    )
-                )
-            return False
-            # NF: end
+    #     except Exception as e:
+    #         # NF: start
+    #         if isinstance(e, WebDriverException):
+    #             logger.exception(
+    #                 "Error occurred while deleting cookies from web browser!\n\t{}".format(
+    #                     str(e).encode("utf-8")
+    #                 )
+    #             )
+    #         return False
+    #         # NF: end
 
     web_address_navigator(browser, ig_homepage)
 
-    # Check if the first div is 'Create an Account' or 'Log In'
-    try:
-        login_elem = browser.find_element(
-            By.XPATH, "//button//div[text()='Log in']") #login_user.__name__, "login_elem")
-        # )
-    except NoSuchElementException:
-        logger.warning("Login A/B test detected! Trying another string...")
-        try:
-            login_elem = browser.find_element(
-                By.XPATH,
-                read_xpath(login_user.__name__, "login_elem_no_such_exception"),
-            )
-        except NoSuchElementException:
-            logger.warning("Could not pass the login A/B test. Trying last string...")
-            try:
-                login_elem = browser.find_element(
-                    By.XPATH,
-                    read_xpath(login_user.__name__, "login_elem_no_such_exception_2"),
-                )
-            except NoSuchElementException as e:
-                # NF: start
-                logger.exception(
-                    "Login A/B test failed!\n\t{}".format(str(e).encode("utf-8"))
-                )
-                return False
-                # NF: end
+    # # Check if the first div is 'Create an Account' or 'Log In'
+    # try:
+    #     login_elem = browser.find_element(
+    #         By.XPATH, "//button//div[text()='Log in']") #login_user.__name__, "login_elem")
+    # except NoSuchElementException:
+    #     logger.warning("Login A/B test detected! Trying another string...")
+    #     try:
+    #         login_elem = browser.find_element(
+    #             By.XPATH,
+    #             read_xpath(login_user.__name__, "login_elem_no_such_exception"),
+    #         )
+    #     except NoSuchElementException:
+    #         logger.warning("Could not pass the login A/B test. Trying last string...")
+    #         try:
+    #             login_elem = browser.find_element(
+    #                 By.XPATH,
+    #                 read_xpath(login_user.__name__, "login_elem_no_such_exception_2"),
+    #             )
+    #         except NoSuchElementException as e:
+    #             # NF: start
+    #             logger.exception(
+    #                 "Login A/B test failed!\n\t{}".format(str(e).encode("utf-8"))
+    #             )
+    #             return False
+    #             # NF: end
 
-    if login_elem is not None:
-        try:
-            (ActionChains(browser).move_to_element(login_elem).click().perform())
-        except MoveTargetOutOfBoundsException:
-            login_elem.click()
+    # if login_elem is not None:
+    #     try:
+    #         (ActionChains(browser).move_to_element(login_elem).click().perform())
+    #     except MoveTargetOutOfBoundsException:
+    #         login_elem.click()
 
-        # update server calls
-        update_activity(browser, state=None)
+    #     # update server calls
+    #     update_activity(browser, state=None)
 
     # Enter username and password and logs the user in
     # Sometimes the element name isn't 'Username' and 'Password'

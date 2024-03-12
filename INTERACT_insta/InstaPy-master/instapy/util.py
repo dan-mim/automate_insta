@@ -77,30 +77,35 @@ def is_private_profile(browser, logger, following=True):
     :return: None if profile cannot be verified
     """
     user_link = browser.current_url
+    content = browser.page_source
+    b = content.split('"is_private"')
+    is_private = True
+    if 'false' in b[1][:10]:
+        is_private = False
     # try:
-    # Get profile owner information
-    time.sleep(2)
-#     shared_data = get_shared_data(browser)
+#     # Get profile owner information
+#     time.sleep(2)
+# #     shared_data = get_shared_data(browser)
 
-#     # Sometimes shared_data["entry_data"]["ProfilePage"][0] is empty, but get_additional_data()
-#     # fetches all data needed
-#     get_key = shared_data.get("entry_data").get("ProfilePage")
+# #     # Sometimes shared_data["entry_data"]["ProfilePage"][0] is empty, but get_additional_data()
+# #     # fetches all data needed
+# #     get_key = shared_data.get("entry_data").get("ProfilePage")
 
-#     if get_key:
-#         data = get_key[0]
-#     else:
-#         data = get_additional_data(browser)
-# finally:
-    data = get_shared_data(browser)
-    is_private = data["graphql"]["user"]["is_private"]
+# #     if get_key:
+# #         data = get_key[0]
+# #     else:
+# #         data = get_additional_data(browser)
+# # finally:
+#     data = get_shared_data(browser)
+#     is_private = data["graphql"]["user"]["is_private"]
 
-    logger.info(
-        "Checked if '{}' is private, and it is: '{}'".format(
-            data["graphql"]["user"]["username"], is_private
-        )
-    )
+#     logger.info(
+#         "Checked if '{}' is private, and it is: '{}'".format(
+#             data["graphql"]["user"]["username"], is_private
+#         )
+#     )
     
-    web_address_navigator(browser, user_link)
+#     web_address_navigator(browser, user_link)
     
     return is_private
 
@@ -371,7 +376,26 @@ def validate_username(
     # skip private
     if skip_private:
         try:
-            is_private = getUserData("graphql.user.is_private", browser)
+            content = browser.page_source
+            a = content.split('"user_id"')
+            b = content.split('"is_private"')
+            # user_id = a[1].split('"')[1]
+            # query_hash = get_query_hash(browser, logger, False)
+            # graphql_query_URL = (
+            #     "view-source:https://www.instagram.com/graphql/query/?query_hash={}".format(
+            #         query_hash
+            #     ))
+            # variables = {
+            #     "id": str(user_id),
+            #     "include_reel": "true",
+            #     "fetch_mutual": "true",
+            #     "first": 50,
+            # }
+            # url = "{}&variables={}".format(graphql_query_URL, str(json.dumps(variables)))
+            # web_address_navigator(browser, url)
+            is_private = True
+            if 'false' in b[1][:10]:
+                is_private = False
 
             if is_private and (random.randint(0, 100) <= skip_private_percentage):
                 return False, "{} is private account, by default skip\n".format(
@@ -1158,14 +1182,15 @@ def get_number_of_posts(browser):
     """Get the number of posts from the profile screen"""
     user_link = browser.current_url
     try:
-        num_of_posts = getUserData(
-            "graphql.user.edge_owner_to_timeline_media.count", browser
-        )
+        num_of_posts_txt = browser.find_element(
+            By.XPATH, "//span[@class='html-span xdj266r x11i5rnm xat24cr x1mh8g0r xexx8yu x4uap5 x18d9i69 xkhd6sd x1hl2dhg x16tdsg8 x1vvkbs']"
+            ).text
+        
     except WebDriverException:
         try:
-            num_of_posts_txt = browser.find_element(
-                By.XPATH, read_xpath(get_number_of_posts.__name__, "num_of_posts_txt")
-            ).text
+            num_of_posts = getUserData(
+                "graphql.user.edge_owner_to_timeline_media.count", browser
+            )
 
         except NoSuchElementException:
             num_of_posts_txt = browser.find_element(
@@ -1175,9 +1200,9 @@ def get_number_of_posts(browser):
                 ),
             ).text
 
-        num_of_posts_txt = num_of_posts_txt.replace(" ", "")
-        num_of_posts_txt = num_of_posts_txt.replace(",", "")
-        num_of_posts = int(num_of_posts_txt)
+    num_of_posts_txt = num_of_posts_txt.replace(" ", "")
+    num_of_posts_txt = num_of_posts_txt.replace(",", "")
+    num_of_posts = int(num_of_posts_txt)
         
     web_address_navigator(browser, user_link)
     return num_of_posts
@@ -1661,9 +1686,16 @@ def check_authorization(browser, username, method, logger, notify=True):
 
         # if user is not logged in, `activity_counts` will be `None`- JS `null`
         try:
-            activity_counts = browser.execute_script(
-                "return window._sharedData.activity_counts"
-            )
+            activity_counts = browser.execute_script("""
+                if (window._sharedData) {
+                    return true;
+                } else {
+                    return false;
+                }
+            """)
+            # activity_counts = browser.execute_script(
+            #     "return window._sharedData.activity_counts"
+            # )
 
         except WebDriverException:
             try:

@@ -330,6 +330,7 @@ def users_liked(browser, photo_url, amount=100, logger=None, my_personal_list=[]
                 web_address_navigator(browser, photo_url)
                 WebDriverWait(browser, 3).until(EC.element_to_be_clickable((By.XPATH, read_xpath(likers_from_photo.__name__, "second_counter_button"),)))
 
+
             except:
                 photo_url = photo_url + '?igshid=NzgyYTk0Y2YyNg==' 
                 web_address_navigator(browser, photo_url)
@@ -357,57 +358,96 @@ def likers_from_photo(browser, amount=20, logger=None, my_personal_list=[]):
     """Get the list of users from the 'Likes' dialog of a photo"""
 
     try:
-        if check_exists_by_xpath(
-            browser, read_xpath(likers_from_photo.__name__, "second_counter_button")
-        ):
+        time.sleep(5)
+        # click and open dialog box
+        try:
             liked_this = browser.find_elements(
                 By.XPATH,
                 read_xpath(likers_from_photo.__name__, "second_counter_button"),
             )
-            element_to_click = liked_this[1]
-        elif check_exists_by_xpath(
-            browser, read_xpath(likers_from_photo.__name__, "liked_counter_button")
-        ):
-            liked_this = browser.find_elements(
-                By.XPATH, read_xpath(likers_from_photo.__name__, "liked_counter_button")
-            )
-            likers = []
+            element_to_click = liked_this[0]
+            click_element(browser, element_to_click)
+            time.sleep(5)
+            try:
+                if len(liked_this)>1:
+                    element_to_click = liked_this[1]
+                    click_element(browser, element_to_click)
+                    time.sleep(5)
+            except:
+                pass
+        except:
+            try:
+                if len(liked_this)>1:
+                    element_to_click = liked_this[1]
+                    click_element(browser, element_to_click)
+                else:
+                    liked_this = browser.find_elements(
+                        By.XPATH,
+                        read_xpath(likers_from_photo.__name__, "second_counter_button"),
+                    )
+                    element_to_click = liked_this[0]
+                    click_element(browser, element_to_click)
+            except:
+                # If you are here, it is because you discovered that sometimes an
+                # xpath does not work, at the moment the number of views in a video
+                # does not behave like the number of likes in a photo. Clicking on
+                # the number of views only shows the same number in a floating
+                # window; no users to get.
+                # www.instagram.com/p/CASprIDgOOO/ -> 3,275,561 views -> 11-24-20
+                logger.info("Couldn't find liked counter button. May be a video.")
+                logger.info("Trying again for some image, moving on...")
+                return []
+                    
+        # if check_exists_by_xpath(
+        #     browser, read_xpath(likers_from_photo.__name__, "second_counter_button")
+        # ):
+        #     liked_this = browser.find_elements(
+        #         By.XPATH,
+        #         read_xpath(likers_from_photo.__name__, "second_counter_button"),
+        #     )
+        #     element_to_click = liked_this[0]
+        # elif check_exists_by_xpath(
+        #     browser, read_xpath(likers_from_photo.__name__, "liked_counter_button")
+        # ):
+        #     liked_this = browser.find_elements(
+        #         By.XPATH, read_xpath(likers_from_photo.__name__, "liked_counter_button")
+        #     )
+        #     likers = []
 
-            for liker in liked_this:
-                if " like this" not in liker.text:
-                    likers.append(liker.text)
+        #     for liker in liked_this:
+        #         if " like this" not in liker.text:
+        #             likers.append(liker.text)
 
-            if " others" in liked_this[-1].text:
-                element_to_click = liked_this[-1]
+        #     if " others" in liked_this[-1].text:
+        #         element_to_click = liked_this[-1]
 
-            elif " likes" in liked_this[0].text:
-                element_to_click = liked_this[0]
+        #     elif " likes" in liked_this[0].text:
+        #         element_to_click = liked_this[0]
 
-            else:
-                logger.info(
-                    "Few likes, not guaranteed you don't follow these"
-                    " likers already.\nGot photo likers: {}".format(likers)
-                )
-                return likers
+        #     else:
+        #         logger.info(
+        #             "Few likes, not guaranteed you don't follow these"
+        #             " likers already.\nGot photo likers: {}".format(likers)
+        #         )
+        #         return likers
 
-        else:
-            # If you are here, it is because you discovered that sometimes an
-            # xpath does not work, at the moment the number of views in a video
-            # does not behave like the number of likes in a photo. Clicking on
-            # the number of views only shows the same number in a floating
-            # window; no users to get.
-            # www.instagram.com/p/CASprIDgOOO/ -> 3,275,561 views -> 11-24-20
-            logger.info("Couldn't find liked counter button. May be a video.")
-            logger.info("Trying again for some image, moving on...")
-            return []
+        # else:
+        #     # If you are here, it is because you discovered that sometimes an
+        #     # xpath does not work, at the moment the number of views in a video
+        #     # does not behave like the number of likes in a photo. Clicking on
+        #     # the number of views only shows the same number in a floating
+        #     # window; no users to get.
+        #     # www.instagram.com/p/CASprIDgOOO/ -> 3,275,561 views -> 11-24-20
+        #     logger.info("Couldn't find liked counter button. May be a video.")
+        #     logger.info("Trying again for some image, moving on...")
+        #     return []
 
         sleep(1)
-        click_element(browser, element_to_click)
         logger.info("Opening likes...")
 
-        # update server calls
-        update_activity(browser, state=None)
-        sleep(1)
+        # # update server calls
+        # update_activity(browser, state=None)
+        # sleep(1)
 
         # get a reference to the 'Likes' dialog box
         dialog = browser.find_element(
@@ -419,7 +459,7 @@ def likers_from_photo(browser, amount=20, logger=None, my_personal_list=[]):
         browser.execute_script(
             "arguments[0].scrollTop = arguments[0].scrollHeight", dialog
         )
-        update_activity(browser, state=None)
+        # update_activity(browser, state=None)
         sleep(1)
 
         start_time = time.time()

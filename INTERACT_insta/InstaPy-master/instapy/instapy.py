@@ -429,7 +429,7 @@ class InstaPy:
 
         return self
 
-    def login(self):
+    def login(self, check_infos=True):
         """Used to login the user either with the username and password"""
         # InstaPy uses page_delay speed to implicit wait for elements,
         # here we're decreasing it to 5 seconds instead of the default 25
@@ -486,77 +486,78 @@ class InstaPy:
         #             str(e).encode("utf-8")
         #         )
         #     )
-
-        # the persons I follow and the followers I have 
-        date_list = [datetime.now().strftime('%d/%m/%Y')]
-        self.my_followings, _ = get_given_user_following(
-            self.browser,
-            self.username,
-            self.username,
-            2000,
-            self.dont_include,
-            False,
-            self.blacklist,
-            self.follow_times,
-            self.simulation,
-            self.jumps,
-            self.logger,
-            self.logfolder,
-        )
         
-        self.following_num = len(self.my_followings)
-        
-        # if the document already exist
-        if os.path.isfile('followings.csv'):
-            df_followings_tot = pd.read_csv('followings.csv')
-            # store the data of my followers and my followings
-            my_followings1 = [p for p in self.my_followings if p not in list(df_followings_tot.followings)]
-            df_followings = pd.DataFrame({'followings':my_followings1, 'date':date_list*len(my_followings1)})
-            df_followings_tot = pd.concat([df_followings_tot, df_followings], ignore_index=True)
-            df_followings_tot = df_followings_tot.drop_duplicates()
-        
-        # if the doc does not exist, I create it for the first time
-        else:
-            df_followings_tot = pd.DataFrame({'followings':self.my_followings, 'date':date_list*len(self.my_followings)})
-        
-        df_followings_tot.to_csv('followings.csv', index=False)
-        
-        self.my_followers, _ = get_given_user_followers(
-            self.browser,
-            self.username,
-            self.username,
-            2000,
-            self.dont_include,
-            False,
-            self.blacklist,
-            self.follow_times,
-            self.simulation,
-            self.jumps,
-            self.logger,
-            self.logfolder,
-        )
-        
-        self.followed_by = len(self.my_followers)
-        
-        if os.path.isfile('followers.csv'):
-            df_followers_tot = pd.read_csv('followers.csv')
-            my_followers1 = [p for p in self.my_followers if p not in list(df_followers_tot.followers)]
-            df_followers = pd.DataFrame({'followers':my_followings1, 'date':date_list*len(my_followings1)})
-            df_followers_tot = pd.concat([df_followers_tot, df_followers], ignore_index=True)
-            df_followers_tot = df_followers_tot.drop_duplicates()
-        else:
-            df_followers_tot = pd.DataFrame({'followers':self.my_followers, 'date':date_list*len(self.my_followers)})
-        df_followers_tot.to_csv('followers.csv', index=False)
-        
-        
-        # I create a list of person that I don't need to follow again: self.my_person_list :
-        followers = set( list(df_followers_tot.followers) )
-        followings = set( list(df_followings_tot.followings) )
-        self.my_person_list = followers.union(followings)
-        self.my_person_list = list(set( self.my_person_list ))
-        # self.my_followers = followers 
-        # self.my_followings = followings
-        
+        if check_infos :
+            # the persons I follow and the followers I have 
+            date_list = [datetime.now().strftime('%d/%m/%Y')]
+            self.my_followings, _ = get_given_user_following(
+                self.browser,
+                self.username,
+                self.username,
+                2000,
+                self.dont_include,
+                False,
+                self.blacklist,
+                self.follow_times,
+                self.simulation,
+                self.jumps,
+                self.logger,
+                self.logfolder,
+            )
+            
+            self.following_num = len(self.my_followings)
+            
+            # if the document already exist
+            if os.path.isfile('followings.csv'):
+                df_followings_tot = pd.read_csv('followings.csv')
+                # store the data of my followers and my followings
+                my_followings1 = [p for p in self.my_followings if p not in list(df_followings_tot.followings)]
+                df_followings = pd.DataFrame({'followings':my_followings1, 'date':date_list*len(my_followings1)})
+                df_followings_tot = pd.concat([df_followings_tot, df_followings], ignore_index=True)
+                df_followings_tot = df_followings_tot.drop_duplicates()
+            
+            # if the doc does not exist, I create it for the first time
+            else:
+                df_followings_tot = pd.DataFrame({'followings':self.my_followings, 'date':date_list*len(self.my_followings)})
+            
+            df_followings_tot.to_csv('followings.csv', index=False)
+            
+            self.my_followers, _ = get_given_user_followers(
+                self.browser,
+                self.username,
+                self.username,
+                2000,
+                self.dont_include,
+                False,
+                self.blacklist,
+                self.follow_times,
+                self.simulation,
+                self.jumps,
+                self.logger,
+                self.logfolder,
+            )
+            
+            self.followed_by = len(self.my_followers)
+            
+            if os.path.isfile('followers.csv'):
+                df_followers_tot = pd.read_csv('followers.csv')
+                my_followers1 = [p for p in self.my_followers if p not in list(df_followers_tot.followers)]
+                df_followers = pd.DataFrame({'followers':my_followings1, 'date':date_list*len(my_followings1)})
+                df_followers_tot = pd.concat([df_followers_tot, df_followers], ignore_index=True)
+                df_followers_tot = df_followers_tot.drop_duplicates()
+            else:
+                df_followers_tot = pd.DataFrame({'followers':self.my_followers, 'date':date_list*len(self.my_followers)})
+            df_followers_tot.to_csv('followers.csv', index=False)
+            
+            
+            # I create a list of person that I don't need to follow again: self.my_person_list :
+            followers = set( list(df_followers_tot.followers) )
+            followings = set( list(df_followings_tot.followings) )
+            self.my_person_list = followers.union(followings)
+            self.my_person_list = list(set( self.my_person_list ))
+            # self.my_followers = followers 
+            # self.my_followings = followings
+            
         
         
         return self
@@ -3350,7 +3351,7 @@ class InstaPy:
         liked = self.liked_img - liked_init
         already_liked = self.already_liked - already_liked_init
         commented = self.commented - commented_init
-        followed = self.followed - followed_init
+        followed = interacted_all # self.followed - followed_init
         inap_img = self.inap_img - inap_img_init
 
         # print results
@@ -3424,6 +3425,7 @@ class InstaPy:
         self.quotient_breach = False
 
         for index, username in enumerate(usernames):
+            time.sleep(5)
             if self.quotient_breach:
                 break
 
@@ -6281,3 +6283,17 @@ class InstaPy:
             return []
 
         return target_list
+
+    def send_direct_mess(self, url, mess):
+        a = 0
+        web_address_navigator(self.browser, url)
+        element = self.browser.find_elements(By.XPATH,"//body")
+        element = element[0]
+        for letter in mess:
+            element.send_keys(letter)
+        xp_click = '/html/body/div[2]/div/div/div[2]/div/div/div[1]/section/div/div[2]/div/div/div/div/div/div/div[2]/div/div/div[2]/div/div/div[2]'
+        click = self.browser.find_elements(By.XPATH, xp_click)
+        click[0].click()
+        
+        
+        

@@ -175,7 +175,7 @@ def get_links_for_location(
         # keeps counted for the location
 
     # Get links
-    links = get_links(browser, location, logger, media, main_elem)
+    links = get_links(browser, location, logger, media, main_elem)[0]
     filtered_links = len(links)
     try_again = 0
     sc_rolled = 0
@@ -199,7 +199,7 @@ def get_links_for_location(
                 # you sent scroll command...
 
             sleep(3)
-            links.extend(get_links(browser, location, logger, media, main_elem))
+            links.extend(get_links(browser, location, logger, media, main_elem)[0])
 
             links_all = links  # uniqify links while preserving order
             s = set()
@@ -349,7 +349,7 @@ def get_links_for_tag(browser, tag, amount, skip_top_posts, randomize, media, lo
     # counted for the tag
 
     # Get links
-    links = get_links(browser, tag, logger, media, main_elem)
+    links = get_links(browser, tag, logger, media, main_elem)[0]
     # Disabling this are there are only 9 "Top Posts" now
     filtered_links = 1
     try_again = 0
@@ -376,7 +376,7 @@ def get_links_for_tag(browser, tag, amount, skip_top_posts, randomize, media, lo
                     # you sent scroll command...
 
                 sleep(3)
-                links.extend(get_links(browser, tag, logger, media, main_elem))
+                links.extend(get_links(browser, tag, logger, media, main_elem)[0])
 
             links_all = links  # uniqify links while preserving order
             s = set()
@@ -487,8 +487,9 @@ def get_links_for_username(
 
     # if following_status == 'Follow':
     #    browser.wait_for_valid_authorization(browser, username, logger)
-
-    is_private = is_private_profile(browser, logger, following_status == "Following")
+    
+    
+    is_private = is_private_profile(browser, logger) #, following_status == "Following")
 
     if (
         is_private is None
@@ -513,49 +514,53 @@ def get_links_for_username(
                                     )
         
         return False
-
-    # Get links
-    links = []
-    main_elem = browser.find_element(By.TAG_NAME, "article")
-    posts_count = get_number_of_posts(browser)
-    attempt = 0
-
-    if posts_count is not None and amount > posts_count:
-        logger.info(
-            "You have requested to get {} posts from {}'s profile page but"
-            " there only {} posts available :D".format(amount, person, posts_count)
-        )
-        amount = posts_count
-
-    while len(links) < amount:
-        initial_links = links
-        browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        # update server calls after a scroll request
-        update_activity(browser, state=None)
-        sleep(0.66)
-
-        # using `extend`  or `+=` results reference stay alive which affects
-        # previous assignment (can use `copy()` for it)
-        main_elem = browser.find_element(By.TAG_NAME, "article")
-        links = links + get_links(browser, person, logger, media, main_elem)
-        links = sorted(set(links), key=links.index)
-
-        if len(links) == len(initial_links):
-            if attempt >= 7:
-                logger.info(
-                    "There are possibly less posts than {} in {}'s profile "
-                    "page!".format(amount, person)
-                )
-                break
+    if not is_private :
+        # Get links
+        links = []
+        main_elem = browser # browser.find_element(By.TAG_NAME, "article")
+        posts_count = get_number_of_posts(browser)
+        attempt = 0
+    
+        if posts_count is not None and amount > posts_count:
+            logger.info(
+                "You have requested to get {} posts from {}'s profile page but"
+                " there only {} posts available :D".format(amount, person, posts_count)
+            )
+            amount = posts_count
+    
+        while len(links) < amount:
+            initial_links = links
+            browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            # update server calls after a scroll request
+            update_activity(browser, state=None)
+            sleep(0.66)
+    
+            # using `extend`  or `+=` results reference stay alive which affects
+            # previous assignment (can use `copy()` for it)
+            main_elem = browser # browser.find_element(By.TAG_NAME, "article")
+            l, must_exit = get_links(browser, person, logger, media, main_elem)
+            links = links + l
+            if must_exit: # meaning the page is probably private
+                return(False) 
+            links = sorted(set(links), key=links.index)
+    
+            if len(links) == len(initial_links):
+                if attempt >= 7:
+                    logger.info(
+                        "There are possibly less posts than {} in {}'s profile "
+                        "page!".format(amount, person)
+                    )
+                    break
+                else:
+                    attempt += 1
             else:
-                attempt += 1
-        else:
-            attempt = 0
-
-    if randomize is True:
-        random.shuffle(links)
-
-    return links[:amount]
+                attempt = 0
+    
+        if randomize is True:
+            random.shuffle(links)
+    
+        return links[:amount]
+    return(False)
 
 
 def get_media_edge_comment_string(media):
@@ -871,6 +876,7 @@ def get_tags(browser, url):
 def get_links(browser, page, logger, media, element):
     links = []
     post_href = None
+    must_exit = False
 
     try:
         # Get image links in scope from hashtag, location and other pages
@@ -933,6 +939,7 @@ def get_links(browser, page, logger, media, element):
                             "Cannot detect post media type. Skip {}".format(post_href)
                         )
         else:
+            must_exit = True
             logger.info("'{}' page does not contain a picture".format(page))
 
     except BaseException as e:
@@ -948,8 +955,7 @@ def get_links(browser, page, logger, media, element):
     #     logger.info("Links retrieved:: [{}/{}]".format(i + 1, link))
     logger.info("Links retrieved = {} links".format(len(links)))
 
-    return links
-
+    return links, must_exit
 
 def verify_liking(browser, maximum, minimum, logger):
     """Get the amount of existing existing likes and compare it against maximum
