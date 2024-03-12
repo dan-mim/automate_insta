@@ -2620,17 +2620,18 @@ class InstaPy:
                 self.logger.info("No interaction needed: I only follow")
 
             if links is False:
-                # follow account:
-                follow_state, msg = follow_user(
-                                                self.browser,
-                                                "profile",
-                                                self.username,
-                                                username,
-                                                None,
-                                                {"enabled": "True", "campaign": ""},
-                                                self.logger,
-                                                self.logfolder,
-                                            )
+                # I don't follow the account anymore because it is usually a private accounte
+                # # follow account:
+                # follow_state, msg = follow_user(
+                #                                 self.browser,
+                #                                 "profile",
+                #                                 self.username,
+                #                                 username,
+                #                                 None,
+                #                                 {"enabled": "True", "campaign": ""},
+                #                                 self.logger,
+                #                                 self.logfolder,
+                #                             )
                 continue
 
             # Reset like counter for every username
