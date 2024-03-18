@@ -2620,18 +2620,17 @@ class InstaPy:
                 self.logger.info("No interaction needed: I only follow")
 
             if links is False:
-                # I don't follow the account anymore because it is usually a private accounte
-                # # follow account:
-                # follow_state, msg = follow_user(
-                #                                 self.browser,
-                #                                 "profile",
-                #                                 self.username,
-                #                                 username,
-                #                                 None,
-                #                                 {"enabled": "True", "campaign": ""},
-                #                                 self.logger,
-                #                                 self.logfolder,
-                #                             )
+                # follow account:
+                follow_state, msg = follow_user(
+                                                self.browser,
+                                                "profile",
+                                                self.username,
+                                                username,
+                                                None,
+                                                {"enabled": "True", "campaign": ""},
+                                                self.logger,
+                                                self.logfolder,
+                                            )
                 continue
 
             # Reset like counter for every username
@@ -3426,7 +3425,6 @@ class InstaPy:
         self.quotient_breach = False
 
         for index, username in enumerate(usernames):
-            time.sleep(5)
             if self.quotient_breach:
                 break
 

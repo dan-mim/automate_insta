@@ -34,8 +34,7 @@ import time
 hashtags = list(pd.read_csv('hashtags.csv').hashtags)
 commentaires = list(pd.read_csv('commentaires.csv').commentaires)
 very_basic_comments = list(pd.read_csv('very_basic_comments.csv').very_basic_comments)
-inspiring_users = ['giovannainparis', 'parislivingway', 'joaquim.santos.paris',
-                   'parisisincredible', 'paristumemanques', 'secrets_de_paris', 'sightseekersparis']
+inspiring_users = ['mykalios']
 
 
 ##################
@@ -43,12 +42,11 @@ inspiring_users = ['giovannainparis', 'parislivingway', 'joaquim.santos.paris',
 ##################
 
 # Open my session  
-session = InstaPy(username='paris_pics_aesthetic', password='azertyU@2023', headless_browser=False,
-                  geckodriver_path=r'C:\Users\dan15\OneDrive\Bureau\projet insta\automate_insta-main\paris_pics_aesthetic\INTERACT_insta\geckodriver-v0.33.0-win32/geckodriver.exe',
+session = InstaPy(username='olvero_france', password='Dbzu-qzjn-sPetj76439', headless_browser=False,
+                  geckodriver_path=r'C:\Users\dan15\OneDrive\Bureau\projet insta\automate_insta-main\olvero_france\INTERACT_insta\geckodriver-v0.33.0-win32/geckodriver.exe',
                   browser_executable_path=r'C:\Program Files\Mozilla Firefox\firefox.exe')
 # login
 session.login()
-time.sleep(5*60)
 
 # Definitions
 """
@@ -72,48 +70,44 @@ session.set_user_interact(amount=1, percentage=100, randomize=True)
 ##################
 # INTERACTIONS:  #
 ##################
-for i in range(5):
-    ## BLOC 1 : Follow followers of some inspiring_users
-    users = [inspiring_users[i] for i in random.sample(range(0, len(inspiring_users)), 1)]
-    session.set_do_like(enabled=False, percentage=0)
-    session.set_do_follow(enabled=True, percentage=100)
-    session.interact_user_followers(usernames=users, amount=10, randomize=True, quick_follow=False,)
-    print('Bloc 1 is done')
-    
-    
-    time.sleep(20*60)
-    
-    ## BLOC 2 : Follow and like posts of someone who liked a post of inspiring_users
-    # to limit the nb of requests sent to instagram it's better to grab more users per post than 
-    # go through a lot of posts from the inspiring_users
-    users = [inspiring_users[i] for i in random.sample(range(0, len(inspiring_users)), 1)]
-    session.set_comments(comments=very_basic_comments)
-    session.set_do_comment(enabled=True, comment_liked_photo=False, percentage=33) 
-    session.set_do_like(enabled=True, percentage=100)
-    session.set_do_follow(enabled=True, percentage=100)
-    session.set_user_interact(amount=2, percentage=100, randomize=True)
-    session.interact_user_likers(users, posts_grab_amount=1, interact_likers_per_post=5, randomize=True)
-    print('Bloc 2 is done')
-    
-    
-    time.sleep(20*60)
-    
-    ## BLOC 3 : Like and comment relatable hashtags
-    nb_hashtags = 2
-    list_hashtags = [hashtags[i] for i in random.sample(range(0, len(hashtags)), nb_hashtags)]
-    session.set_do_follow(enabled=True, percentage=100)
-    session.set_comments(comments=commentaires)
-    session.set_do_comment(enabled=True, comment_liked_photo=False, percentage=33)
-    session.set_user_interact(amount=1, randomize=True, percentage=00) 
-    session.set_do_follow(enabled=False, percentage=0)
-    session.like_by_tags(list_hashtags, amount=5, randomize=True, interact=False) # it is better not to interact because it could lead to comment irrelevantly pictures
-    
-    
-    # ## BLOC PIVOT : unfollow users
-    # session.unfollow_users(amount=4, delay_followbackers=172800) #aproximatelly 2 days
-    
-    
-    time.sleep(60*60)
+
+## BLOC 1 : Follow followers of some inspiring_users
+users = [inspiring_users[i] for i in random.sample(range(0, len(inspiring_users)), 1)]
+session.set_do_like(enabled=False, percentage=0)
+session.set_do_follow(enabled=True, percentage=100)
+session.interact_user_followers(usernames=users, amount=2, randomize=True, quick_follow=False,)
+print('Bloc 1 is done')
+
+
+## BLOC 2 : Follow and like posts of someone who liked a post of inspiring_users
+# to limit the nb of requests sent to instagram it's better to grab more users per post than 
+# go through a lot of posts from the inspiring_users
+users = [inspiring_users[i] for i in random.sample(range(0, len(inspiring_users)), 1)]
+session.set_comments(comments=very_basic_comments)
+session.set_do_comment(enabled=True, comment_liked_photo=False, percentage=0) #30)
+session.set_do_like(enabled=True, percentage=100)
+session.set_do_follow(enabled=True, percentage=100)
+session.set_user_interact(amount=2, percentage=100, randomize=True)
+session.interact_user_likers(users, posts_grab_amount=1, interact_likers_per_post=3, randomize=True)
+print('Bloc 2 is done')
+
+
+## BLOC 3 : Like and comment relatable hashtags
+nb_hashtags = 2
+list_hashtags = [hashtags[i] for i in random.sample(range(0, len(hashtags)), nb_hashtags)]
+session.set_do_follow(enabled=True, percentage=100)
+session.set_comments(comments=commentaires)
+session.set_do_comment(enabled=True, comment_liked_photo=False, percentage=0)
+session.set_user_interact(amount=1, randomize=True, percentage=00) 
+session.set_do_follow(enabled=False, percentage=00)
+session.like_by_tags(list_hashtags, amount=3, randomize=True, interact=False) # it is better not to interact because it could lead to comment irrelevantly pictures
+
+
+# ## BLOC PIVOT : unfollow users
+# session.unfollow_users(amount=4, delay_followbackers=172800) #aproximatelly 2 days
+
+
+
 
 
 

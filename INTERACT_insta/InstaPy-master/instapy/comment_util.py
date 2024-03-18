@@ -109,7 +109,7 @@ def comment_image(browser, username, comments, blacklist, logger, logfolder):
             # wait, to avoid crash
             sleep(2)
             # post comment / <enter>
-            post_button = browser.find_elements(By.XPATH, "//textarea[@aria-label='Add a comment…']")
+            post_button = browser.find_elements(By.XPATH, "//div[@class='_aidp']/div")
             (
                 ActionChains(browser)
                 .move_to_element(post_button[0])
